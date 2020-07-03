@@ -10,6 +10,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <iostream>
 
 namespace Mordor {
 
@@ -109,8 +110,8 @@ public:
     bool isLockable() const { return m_lockable; }
 
     void monitor(std::function<void()> dg) {
+        std::cout << "monitor " << std::endl;
         m_cb = dg;
-        m_cb();
     }
 
     virtual std::string toString() const = 0;
@@ -173,6 +174,7 @@ public:
     // TODO: atomicCompareExchange and/or mutex
     T val() const { return m_val; }
     bool val(const T &v) {
+        std::cout << "set val" << v <<std::endl;
         T oldVal = m_val;
         if (oldVal != v) {
             m_val = v;
@@ -205,6 +207,7 @@ public:
     static typename ConfigVar<T>::ptr
     lookup(const std::string &name, const T &defaultValue,
            const std::string &description = "", bool lockable = false) {
+        std::cout << "lookup " << name << std::endl;
         if (!isValidConfigVarName(name))
             throw std::invalid_argument(name);
 

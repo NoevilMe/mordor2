@@ -16,7 +16,7 @@ int main() {
     Config::lookup("log.stdout");
     g_logStdout->fromString("1");
 
-    MORDOR_LOG_INFO(g_log) << "hello" << std::endl;
+    MORDOR_LOG_INFO(g_log) << "hello " << 2 << std::endl;
 
     return 0;
 }

@@ -227,6 +227,7 @@ private:
 
 /// Streams a Log::Level as a string, instead of an integer
 std::ostream &operator <<(std::ostream &os, Mordor::Log::Level level);
+std::ostream &operator <<(std::ostream &os, system_time_point timestamp);
 }
 
 
