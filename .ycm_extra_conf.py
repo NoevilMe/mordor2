@@ -50,7 +50,7 @@ base_flags = [
         # a "-std=<something>".
         # For a C project, you would set this to something like 'c99' instead of
         # 'c++11'.
-        '-std=c++11',
+        '-std=c++20',
         # ...and the same thing goes for the magic -x option which specifies the
         # language that the files to be compiled are written in. This is mostly
         # relevant for c++ headers.
@@ -65,8 +65,8 @@ base_flags = [
 # -isystem <dir>
 sys_include_dir = [
     # must put in front of /usr/include
-    '/usr/include/c++/8',
-    '/usr/include/c++/7',
+    '/usr/include/c++/10',
+    # '/usr/include/c++/7',
     '/usr/include'
 ]
 

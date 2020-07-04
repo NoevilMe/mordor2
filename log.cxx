@@ -4,20 +4,18 @@
 #include "config.h"
 
 #include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <regex>
 #include <sys/types.h>
 #include <syscall.h>
 #include <unistd.h>
 
-#ifndef WINDOWS
-#define SYSLOG_NAMES
-#include <syslog.h>
-#endif
-
 #include "assert.h"
 
 namespace Mordor {
+
+static constexpr auto kMicroSecondsPerSecond = 1000000;
 
 static void enableLoggers();
 static void enableStdoutLogging();
@@ -140,13 +138,20 @@ static void enableFileLogging() {
     }
 }
 
-void StdoutLogSink::log(const std::string &logger, system_time_point now,
-                        tid_t thread, Log::Level level, const std::string &str,
+void StdoutLogSink::log(const std::string &logger, int64_t now, tid_t thread,
+                        Log::Level level, const std::string &str,
                         const char *file, int line) {
     std::ostringstream os;
-     os << now << " "  << level << " " << thread << " "
-       << " " << logger << " " << file << ":" << line << " " << str
-       << std::endl;
+
+    std::time_t seconds = now / kMicroSecondsPerSecond;
+    std::tm local_tm;
+    if (localtime_r(&seconds, &local_tm)) {
+        os << std::put_time(&local_tm, "%F %T%") << "." << std::setfill('0')
+           << std::setw(6) << now % kMicroSecondsPerSecond << " ";
+    }
+
+    os << "[" << level << "] " << thread << " " << logger << " " << file << ":"
+       << line << " - " << str << std::endl;
     std::cout << os.str();
     std::cout.flush();
 }
@@ -157,12 +162,21 @@ FileLogSink::FileLogSink(const std::string &file) {
     // m_file = file;
 }
 
-void FileLogSink::log(const std::string &logger, system_time_point now,
-                      tid_t thread, Log::Level level, const std::string &str,
+void FileLogSink::log(const std::string &logger, int64_t now, tid_t thread,
+                      Log::Level level, const std::string &str,
                       const char *file, int line) {
     std::ostringstream os;
-    // os << now << " " << elapsed << " " << level << " " << thread << " "
-    os << " " << logger << " " << file << ":" << line << " " << str
+
+    std::time_t seconds = now / kMicroSecondsPerSecond;
+    std::tm local_tm;
+    if (localtime_r(&seconds, &local_tm)) {
+        os << "[" << std::put_time(&local_tm, "%F %T%") << "."
+           << std::setfill('0') << std::setw(6) << now % kMicroSecondsPerSecond
+           << "]"
+           << " ";
+    }
+    os << level << " " << thread << " "
+       << " " << logger << " " << file << ":" << line << " " << str
        << std::endl;
     std::string logline = os.str();
     // m_stream->write(logline.c_str(), logline.size());
@@ -231,6 +245,54 @@ void Log::visit(std::function<void(std::shared_ptr<Logger>)> dg) {
     }
 }
 
+void Log::setLogLevel(Level level) {
+    if (level < Log::Level::ERROR) {
+        return;
+    }
+
+    g_logError->fromString(".*");
+    if (level < Log::Level::WARNING) {
+        g_logWarn->fromString("");
+        g_logInfo->fromString("");
+        g_logVerbose->fromString("");
+        g_logDebug->fromString("");
+        g_logTrace->fromString("");
+        return;
+    }
+
+    g_logWarn->fromString(".*");
+    if (level < Log::Level::INFO) {
+        g_logInfo->fromString("");
+        g_logVerbose->fromString("");
+        g_logDebug->fromString("");
+        g_logTrace->fromString("");
+        return;
+    }
+
+    g_logInfo->fromString(".*");
+    if (level < Log::Level::VERBOSE) {
+        g_logVerbose->fromString("");
+        g_logDebug->fromString("");
+        g_logTrace->fromString("");
+        return;
+    }
+
+    g_logVerbose->fromString(".*");
+    if (level < Log::Level::DEBUG) {
+        g_logDebug->fromString("");
+        g_logTrace->fromString("");
+        return;
+    }
+
+    g_logDebug->fromString(".*");
+    if (level < Log::Level::TRACE) {
+        g_logTrace->fromString("");
+        return;
+    }
+
+    g_logTrace->fromString(".*");
+}
+
 bool LoggerLess::operator()(const Logger::ptr &lhs,
                             const Logger::ptr &rhs) const {
     return lhs->m_name < rhs->m_name;
@@ -276,14 +338,14 @@ void Logger::log(Log::Level level, const std::string &str, const char *file,
     if (str.empty() || !enabled(level))
         return;
 
-    auto now = std::chrono::system_clock::now();
+    auto now = std::chrono::duration_cast<std::chrono::microseconds>(
+                   std::chrono::system_clock::now().time_since_epoch())
+                   .count();
     Logger::ptr _this = shared_from_this();
     tid_t thread = gettid();
-    bool somethingLogged = false;
     while (_this) {
         for (std::list<LogSink::ptr>::iterator it(_this->m_sinks.begin());
              it != _this->m_sinks.end(); ++it) {
-            somethingLogged = true;
             (*it)->log(m_name, now, thread, level, str, file, line);
         }
         if (!_this->m_inheritSinks)
@@ -298,41 +360,14 @@ static const char *levelStrs[] = {
     "NONE", "FATAL", "ERROR", "WARNG", "INFOR", "VERBO", "DEBUG", "TRACE",
 };
 
-constexpr auto kMicroSecondsPerSecond = 1000000;
-
-std::string toFormattedString(long long microseconds,
-                              bool showMicroseconds = true) {
-    char buf[64] = {0};
-    time_t seconds = static_cast<time_t>(microseconds / kMicroSecondsPerSecond);
-    struct tm tm_time;
-    gmtime_r(&seconds, &tm_time);
-
-    if (showMicroseconds) {
-        int microseconds =
-            static_cast<int>(microseconds % kMicroSecondsPerSecond);
-        snprintf(buf, sizeof(buf), "%4d%02d%02d %02d:%02d:%02d.%06d",
-                 tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
-                 tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec, microseconds);
-    } else {
-        snprintf(buf, sizeof(buf), "%4d%02d%02d %02d:%02d:%02d",
-                 tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
-                 tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
-    }
-    return buf;
-}
-
 std::ostream &operator<<(std::ostream &os, Log::Level level) {
     assert(level >= Log::Level::FATAL && level <= Log::Level::TRACE);
     return os << levelStrs[static_cast<int>(level)];
 }
 
-std::ostream &operator<<(std::ostream &os, system_time_point timestamp) {
-    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
-                            timestamp.time_since_epoch())
-                            .count();
-    return os << toFormattedString(microseconds);
+tid_t gettid() {
+    static thread_local tid_t tid = syscall(__NR_gettid);
+    return tid;
 }
-
-tid_t gettid() { return syscall(__NR_gettid); }
 
 } // namespace Mordor

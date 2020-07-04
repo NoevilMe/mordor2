@@ -1,5 +1,5 @@
-#ifndef __NONCOPYABLE_H_
-#define __NONCOPYABLE_H_
+#ifndef __MORDOR_NONCOPYABLE_H_
+#define __MORDOR_NONCOPYABLE_H_
 
 namespace Mordor {
 
