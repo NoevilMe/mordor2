@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace Mordor {
+namespace Mordor2 {
 
 ///
 /// Time stamp in UTC, in microseconds resolution.
@@ -103,6 +103,6 @@ inline Timestamp AddTime(Timestamp timestamp, double seconds) {
     return Timestamp(timestamp.microseconds_since_epoch() + delta);
 }
 
-} // namespace Mordor
+} // namespace Mordor2
 
 #endif /* __TIMESTAMP_H_ */

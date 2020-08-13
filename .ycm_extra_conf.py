@@ -66,7 +66,9 @@ base_flags = [
 sys_include_dir = [
     # must put in front of /usr/include
     '/usr/include/c++/10',
-    # '/usr/include/c++/7',
+    '/usr/include/c++/9',
+    '/usr/include/c++/8',
+    '/usr/include/c++/7',
     '/usr/include'
 ]
 
@@ -76,8 +78,7 @@ sys_include_dir = [
 # -I <dir>
 project_include_dir = [
     ".",
-    "./build",
-    "./mojo"
+    "./include"
 ]
 
 flags = base_flags + sum([['-isystem', d] for d in sys_include_dir if os.path.exists(d)],[]) +\

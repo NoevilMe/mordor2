@@ -1,7 +1,7 @@
 #ifndef __MORDOR_NONCOPYABLE_H_
 #define __MORDOR_NONCOPYABLE_H_
 
-namespace Mordor {
+namespace Mordor2 {
 
 class Noncopyable {
 protected:
@@ -13,6 +13,6 @@ protected:
     ~Noncopyable() = default;
 };
 
-} // namespace Mordor
+} // namespace Mordor2
 
 #endif /* __NONCOPYABLE_H_ */

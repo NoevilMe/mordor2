@@ -11,7 +11,7 @@
 #include <sstream>
 #include <string>
 
-namespace Mordor {
+namespace Mordor2 {
 
 /*
 Configuration Variables (ConfigVars) are a mechanism for configuring the
@@ -253,7 +253,7 @@ public:
     ~HijackConfigVar();
 
 private:
-    std::shared_ptr<Mordor::ConfigVarBase> m_var;
+    std::shared_ptr<ConfigVarBase> m_var;
     std::string m_oldValue;
 };
 

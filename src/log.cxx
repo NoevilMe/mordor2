@@ -11,9 +11,9 @@
 #include <syscall.h>
 #include <unistd.h>
 
-#include "assert.h"
+//#include "assert.h"
 
-namespace Mordor {
+namespace Mordor2 {
 
 static constexpr auto kMicroSecondsPerSecond = 1000000;
 

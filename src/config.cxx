@@ -7,7 +7,7 @@
 
 extern char **environ;
 
-namespace Mordor {
+namespace Mordor2 {
 
 bool
 isValidConfigVarName(const std::string &name, bool allowDot)

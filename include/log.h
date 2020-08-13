@@ -11,7 +11,7 @@
 // For tid_t
 #include <pthread.h>
 
-namespace Mordor {
+namespace Mordor2 {
 
 using tid_t = pid_t;
 
@@ -273,32 +273,34 @@ private:
 
 /// @brief Log at a particular level
 /// @param level The level to log at
+#define __FILENAME__                                                           \
+    (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1   \
+                                      : __FILE__)
 #define MORDOR_LOG_LEVEL(lg, level)                                            \
     if ((lg)->enabled(level))                                                  \
-    (lg)->log(level, __FILE__, __LINE__).os()
+    (lg)->log(level, __FILENAME__, __LINE__).os()
 /// Log a fatal error
-#define MORDOR_LOG_FATAL(log) MORDOR_LOG_LEVEL(log, ::Mordor::Log::Level::FATAL)
+#define MORDOR_LOG_FATAL(log) MORDOR_LOG_LEVEL(log, Mordor2::Log::Level::FATAL)
 /// Log an error
-#define MORDOR_LOG_ERROR(log) MORDOR_LOG_LEVEL(log, ::Mordor::Log::Level::ERROR)
+#define MORDOR_LOG_ERROR(log) MORDOR_LOG_LEVEL(log, Mordor2::Log::Level::ERROR)
 /// Log a warning
 #define MORDOR_LOG_WARNING(log)                                                \
-    MORDOR_LOG_LEVEL(log, ::Mordor::Log::Level::WARNING)
+    MORDOR_LOG_LEVEL(log, ::Mordor2::Log::Level::WARNING)
 /// Log an informational message
-#define MORDOR_LOG_INFO(log) MORDOR_LOG_LEVEL(log, ::Mordor::Log::Level::INFO)
+#define MORDOR_LOG_INFO(log) MORDOR_LOG_LEVEL(log, Mordor2::Log::Level::INFO)
 /// Log a verbose message
-#define MORDOR_LOG_VERBOSE(log)                                                \
-    MORDOR_LOG_LEVEL(log, ::Mordor::Log::Level::VERBOSE)
+#define MORDOR_LOG_VERBOSE(log) MORDOR_LOG_LEVEL(log, Mordor2::Log::Level::VERBOSE)
 /// Log a debug message
-#define MORDOR_LOG_DEBUG(log) MORDOR_LOG_LEVEL(log, ::Mordor::Log::Level::DEBUG)
+#define MORDOR_LOG_DEBUG(log) MORDOR_LOG_LEVEL(log, Mordor2::Log::Level::DEBUG)
 /// Log a trace message
-#define MORDOR_LOG_TRACE(log) MORDOR_LOG_LEVEL(log, ::Mordor::Log::Level::TRACE)
+#define MORDOR_LOG_TRACE(log) MORDOR_LOG_LEVEL(log, Mordor2::Log::Level::TRACE)
 /// @}
 
 /// Streams a Log::Level as a string, instead of an integer
-std::ostream &operator<<(std::ostream &os, Mordor::Log::Level level);
+std::ostream &operator<<(std::ostream &os, Log::Level level);
 
 tid_t gettid();
 
-} // namespace Mordor
+} // namespace Mordor2
 
 #endif

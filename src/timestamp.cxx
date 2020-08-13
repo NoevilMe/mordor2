@@ -10,7 +10,7 @@
 #include <chrono>
 #include <inttypes.h>
 
-namespace Mordor {
+namespace Mordor2 {
 
 static_assert(sizeof(Timestamp) == sizeof(int64_t),
               "Timestamp is same size as int64_t");
