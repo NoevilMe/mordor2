@@ -2,6 +2,7 @@
 #define __MORDOR_LOG_H__
 // Copyright (c) 2009 - Mozy, Inc.
 
+#include <fstream>
 #include <functional>
 #include <list>
 #include <memory>
@@ -159,7 +160,7 @@ public:
 
 private:
     std::string m_file;
-    std::shared_ptr<Stream> m_stream;
+    std::shared_ptr<std::ofstream> m_stream;
 };
 
 /// LogEvent is an intermediary class.  It is returned by Logger::log, owns a

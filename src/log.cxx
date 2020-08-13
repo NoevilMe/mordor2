@@ -4,6 +4,7 @@
 #include "config.h"
 
 #include <chrono>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <regex>
@@ -157,30 +158,24 @@ void StdoutLogSink::log(const std::string &logger, int64_t now, tid_t thread,
 }
 
 FileLogSink::FileLogSink(const std::string &file) {
-    // m_stream.reset(new FileStream(file, FileStream::APPEND,
-    // FileStream::OPEN_OR_CREATE));
-    // m_file = file;
+    m_stream.reset(new std::ofstream(file, std::ofstream::app));
+    m_file = file;
 }
 
 void FileLogSink::log(const std::string &logger, int64_t now, tid_t thread,
                       Log::Level level, const std::string &str,
                       const char *file, int line) {
-    std::ostringstream os;
-
     std::time_t seconds = now / kMicroSecondsPerSecond;
     std::tm local_tm;
     if (localtime_r(&seconds, &local_tm)) {
-        os << "[" << std::put_time(&local_tm, "%F %T%") << "."
-           << std::setfill('0') << std::setw(6) << now % kMicroSecondsPerSecond
-           << "]"
-           << " ";
+        *m_stream << "[" << std::put_time(&local_tm, "%F %T%") << "."
+                  << std::setfill('0') << std::setw(6)
+                  << now % kMicroSecondsPerSecond << "]"
+                  << " ";
     }
-    os << level << " " << thread << " "
-       << " " << logger << " " << file << ":" << line << " " << str
-       << std::endl;
-    std::string logline = os.str();
-    // m_stream->write(logline.c_str(), logline.size());
-    // m_stream->flush();
+    *m_stream << level << " " << thread << " "
+              << " " << logger << " " << file << ":" << line << " " << str
+              << std::endl;
 }
 
 static void deleteNothing(Logger *l) {}
@@ -370,4 +365,4 @@ tid_t gettid() {
     return tid;
 }
 
-} // namespace Mordor
+} // namespace Mordor2
